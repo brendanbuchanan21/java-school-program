@@ -1,0 +1,7 @@
+Type: Bug
+ID: 4
+Title: Header_Not_Displaying
+Description: Header_missing_on_homepage
+Status: Open
+Severity: Medium
+Steps to Reproduce: Open_homepage_Check_header_Header_is_missing

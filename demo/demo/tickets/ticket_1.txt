@@ -1,0 +1,7 @@
+Type: Task
+ID: 1
+Title: Implement_User_Authentication
+Description: Add_login_and_registration
+Status: Open
+Due Date: 2025-11-15
+Priority: High

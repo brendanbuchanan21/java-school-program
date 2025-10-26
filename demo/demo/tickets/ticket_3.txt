@@ -1,0 +1,7 @@
+Type: Bug
+ID: 3
+Title: App_Crashes_On_Startup
+Description: Application_fails_to_load
+Status: Open
+Severity: Critical
+Steps to Reproduce: Open_app_Click_login_App_crashes
