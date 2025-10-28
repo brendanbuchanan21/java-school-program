@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.model.Ticket;
 import com.example.demo.model.Task;
 import com.example.demo.model.Bug;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,21 +15,19 @@ import java.nio.file.Paths;
 
 /**
  * Controller class for handling ticket-related endpoints
- * Provides endpoints for creating and retrieving tickets
+ * Provides endpoints for creating, retrieving, and deleting tickets
  */
 @RestController
 public class TicketController {
     
     private int ticketIdCounter = 1; // Counter for generating unique ticket IDs
-    private static final String TICKET_FOLDER = "demo/tickets/"; // Folder to store ticket files
+    private static final String TICKET_FOLDER = "tickets/"; // Folder to store ticket files
 
     /**
      * Endpoint to create a new ticket
-     * URL: /createTicket?type=task&title=...&description=...&dueDate=...&priority=...
-     * or
-     * URL: /createTicket?type=bug&title=...&description=...&severity=...&steps=...
+     * Changed from @RequestMapping to @PostMapping for RESTful style
      */
-    @RequestMapping("/createTicket")
+    @PostMapping("/createTicket")
     public String createTicket(
             @RequestParam String type,
             @RequestParam String title,
@@ -62,9 +62,10 @@ public class TicketController {
 
     /**
      * Endpoint to retrieve a ticket by ID
-     * URL: /getTicket?id=1
+     * Changed from @RequestMapping to @GetMapping for RESTful style
+     * GET method indicates we are retrieving/reading existing data
      */
-    @RequestMapping("/getTicket")
+    @GetMapping("/getTicket")
     public String getTicket(@RequestParam int id) {
         try {
             String filename = TICKET_FOLDER + "ticket_" + id + ".txt";
@@ -84,6 +85,31 @@ public class TicketController {
     }
 
     /**
+     * Endpoint to delete a ticket by ID
+     * Uses @DeleteMapping for RESTful style
+     * DELETE method indicates we are removing existing data
+     */
+    @DeleteMapping("/deleteTicket")
+    public String deleteTicket(@RequestParam int id) {
+        try {
+            String filename = TICKET_FOLDER + "ticket_" + id + ".txt";
+            
+            // Check if file exists
+            if (!Files.exists(Paths.get(filename))) {
+                return "Error: Ticket with ID " + id + " not found. Cannot delete.";
+            }
+
+            // Delete the file
+            Files.delete(Paths.get(filename));
+            
+            return "Ticket with ID " + id + " has been successfully deleted.";
+
+        } catch (Exception e) {
+            return "Error deleting ticket: " + e.getMessage();
+        }
+    }
+
+    /**
      * Helper method to save a ticket to a file
      */
     private void saveTicketToFile(Ticket ticket) throws IOException {
@@ -96,7 +122,7 @@ public class TicketController {
         // Create the filename based on ticket ID
         String filename = TICKET_FOLDER + "ticket_" + ticket.getId() + ".txt";
 
-        // write the ticket data to the file
+        // Write the ticket data to the file
         try (FileWriter writer = new FileWriter(filename)) {
             writer.write(ticket.toFileString());
         }

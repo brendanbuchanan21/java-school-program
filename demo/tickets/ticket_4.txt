@@ -1,0 +1,7 @@
+Type: Bug
+ID: 4
+Title: Login_Crash
+Description: App_crashes_on_login
+Status: Open
+Severity: Critical
+Steps to Reproduce: Open_app_click_login_crash

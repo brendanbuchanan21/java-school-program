@@ -2,21 +2,21 @@ package com.example.demo.model;
 
 /**
  * Base Ticket class - parent class for all ticket types
- * Contains properties that all tickets share
+ * Changed to abstract class 
  */
-public class Ticket {
+public abstract class Ticket {
     // Common properties for all tickets
     protected int id;
     protected String title;
     protected String description;
     protected String status;
 
-    // Default constructor
+    //constructor
     public Ticket() {
         this.status = "Open"; // default status
     }
 
-    // Constructor with parameters
+    // Constructor with paramss
     public Ticket(int id, String title, String description) {
         this.id = id;
         this.title = title;
@@ -57,14 +57,9 @@ public class Ticket {
         this.status = status;
     }
 
-    // Method to convert ticket to string format for file storage
-    public String toFileString() {
-        return "Type: Ticket\n" +
-               "ID: " + id + "\n" +
-               "Title: " + title + "\n" +
-               "Description: " + description + "\n" +
-               "Status: " + status + "\n";
-    }
+    // Abstract method - must be implemented by child classes
+    // This enforces that each ticket type defines how to convert to file format
+    public abstract String toFileString();
 
     @Override
     public String toString() {
