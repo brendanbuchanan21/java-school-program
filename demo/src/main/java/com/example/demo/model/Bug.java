@@ -1,24 +1,31 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
+
 /**
  * Bug class - extends Ticket
- * Represents a bug ticket
+ * Represents a bug ticket with JPA annotations for database persistence
  */
+@Entity
+@Table(name = "bug")
 public class Bug extends Ticket {
-    // Bug-specific properties
+    
+    @Column(length = 50)
     private String severity;
+    
+    @Column(name = "steps_to_reproduce", length = 1000)
     private String stepsToReproduce;
 
-    // constructor
+    // Default constructor (required by JPA)
     public Bug() {
         super();
-        this.severity = "Medium"; // default severity
+        this.severity = "Medium";
     }
 
     // Constructor with parameters
-    public Bug(int id, String title, String description, String severity, String stepsToReproduce) {
-        super(id, title, description); // call parent constructor
-        this.severity = severity;
+    public Bug(String title, String description, String severity, String stepsToReproduce) {
+        super(title, description, "Bug");
+        this.severity = severity != null ? severity : "Medium";
         this.stepsToReproduce = stepsToReproduce;
     }
 
@@ -39,9 +46,8 @@ public class Bug extends Ticket {
         this.stepsToReproduce = stepsToReproduce;
     }
 
-    // Override toFileString to include bug-specific fields
     @Override
-    public String toFileString() {
+    public String getDetails() {
         return "Type: Bug\n" +
                "ID: " + id + "\n" +
                "Title: " + title + "\n" +

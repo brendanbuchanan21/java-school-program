@@ -1,35 +1,52 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
+
 /**
  * Base Ticket class - parent class for all ticket types
- * Changed to abstract class 
+ * Abstract class with JPA Entity annotations for database persistence
+ * Uses single table inheritance strategy
  */
+@Entity
+@Table(name = "ticket")
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Ticket {
-    // Common properties for all tickets
-    protected int id;
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    protected Integer id;
+    
+    @Column(nullable = false)
     protected String title;
+    
+    @Column(length = 1000)
     protected String description;
+    
+    @Column(length = 50)
     protected String status;
+    
+    @Column(name = "ticket_type", nullable = false)
+    protected String ticketType;
 
-    //constructor
+    // Default constructor
     public Ticket() {
-        this.status = "Open"; // default status
-    }
-
-    // Constructor with paramss
-    public Ticket(int id, String title, String description) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
         this.status = "Open";
     }
 
+    // Constructor with parameters
+    public Ticket(String title, String description, String ticketType) {
+        this.title = title;
+        this.description = description;
+        this.status = "Open";
+        this.ticketType = ticketType;
+    }
+
     // Getters and Setters
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -57,12 +74,19 @@ public abstract class Ticket {
         this.status = status;
     }
 
-    // Abstract method - must be implemented by child classes
-    // This enforces that each ticket type defines how to convert to file format
-    public abstract String toFileString();
+    public String getTicketType() {
+        return ticketType;
+    }
+
+    public void setTicketType(String ticketType) {
+        this.ticketType = ticketType;
+    }
+
+    // Abstract method for displaying ticket info
+    public abstract String getDetails();
 
     @Override
     public String toString() {
-        return toFileString();
+        return getDetails();
     }
 }

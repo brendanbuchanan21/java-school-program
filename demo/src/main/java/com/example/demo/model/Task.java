@@ -1,25 +1,32 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
+
 /**
  * Task class - extends Ticket
- * Represents a task ticket 
+ * Represents a task ticket with JPA annotations for database persistence
  */
+@Entity
+@Table(name = "task")
 public class Task extends Ticket {
-    // Task-specific properties
+    
+    @Column(name = "due_date")
     private String dueDate;
+    
+    @Column(length = 50)
     private String priority;
 
-    //constructor
+    // Default constructor (required by JPA)
     public Task() {
         super();
-        this.priority = "Medium"; // default priority
+        this.priority = "Medium";
     }
 
-    // Constructor with params
-    public Task(int id, String title, String description, String dueDate, String priority) {
-        super(id, title, description); // call parent constructor
+    // Constructor with parameters
+    public Task(String title, String description, String dueDate, String priority) {
+        super(title, description, "Task");
         this.dueDate = dueDate;
-        this.priority = priority;
+        this.priority = priority != null ? priority : "Medium";
     }
 
     // Getters and Setters
@@ -39,9 +46,8 @@ public class Task extends Ticket {
         this.priority = priority;
     }
 
-    // Override toFileString to include task-specific fields
     @Override
-    public String toFileString() {
+    public String getDetails() {
         return "Type: Task\n" +
                "ID: " + id + "\n" +
                "Title: " + title + "\n" +
