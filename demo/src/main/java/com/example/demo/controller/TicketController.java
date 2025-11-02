@@ -5,6 +5,8 @@ import com.example.demo.model.Task;
 import com.example.demo.model.Bug;
 import com.example.demo.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.Optional;
 
 /**
  * Controller class for handling ticket-related endpoints
- * Updated to use JPA Repository for database persistence instead of file I/O
+ * Updated to use Caffeine caching for improved performance
  */
 @RestController
 public class TicketController {
@@ -22,10 +24,10 @@ public class TicketController {
 
     /**
      * Endpoint to create a new ticket
-     * Uses @PostMapping for RESTful style - POST creates new data
      * Saves ticket to database using JPA Repository
      */
     @PostMapping("/createTicket")
+    @CacheEvict(value = "tickets", allEntries = true)
     public String createTicket(
             @RequestParam String type,
             @RequestParam String title,
@@ -59,10 +61,11 @@ public class TicketController {
 
     /**
      * Endpoint to retrieve a ticket by ID
-     * Uses @GetMapping for RESTful style - GET retrieves data
-     * Reads from database using JPA Repository
+     * Uses @Cacheable to cache individual ticket responses
+     * Subsequent requests for the same ID will be served from cache
      */
     @GetMapping("/getTicket")
+    @Cacheable(value = "tickets", key = "#id")
     public String getTicket(@RequestParam Integer id) {
         try {
             Optional<Ticket> ticketOpt = ticketRepository.findById(id);
@@ -80,10 +83,11 @@ public class TicketController {
 
     /**
      * Endpoint to retrieve all tickets
-     * Uses @GetMapping for RESTful style
-     * Returns all tickets from database
+     * Uses @Cacheable to cache the entire ticket list
+     * Cache is shared across all requests until it expires or is evicted :')
      */
     @GetMapping("/getAllTickets")
+    @Cacheable(value = "tickets", key = "'allTickets'")
     public String getAllTickets() {
         try {
             List<Ticket> tickets = ticketRepository.findAll();
@@ -105,11 +109,47 @@ public class TicketController {
     }
 
     /**
+     * Endpoint to mark multiple tickets as complete
+     * Uses @CacheEvict to clear cache when tickets are updated
+     * Ensures subsequent requests get fresh data from database
+     */
+    @PostMapping("/completeTickets")
+    @CacheEvict(value = "tickets", allEntries = true)
+    public String completeTickets(@RequestParam List<Integer> ids) {
+        try {
+            // Retrieve all tickets with the provided IDs using Repository method
+            List<Ticket> tickets = ticketRepository.findByIdIn(ids);
+            
+            if (tickets.isEmpty()) {
+                return "Error: No tickets found with the provided IDs.";
+            }
+            
+            // Use lambda function with forEach to update each ticket's status
+            tickets.forEach(ticket -> ticket.setStatus("Complete"));
+            
+            // Save all updated tickets back to the database
+            ticketRepository.saveAll(tickets);
+            
+            // Build response message showing which tickets were completed
+            StringBuilder result = new StringBuilder("Successfully marked " + tickets.size() + " ticket(s) as complete:\n\n");
+            tickets.forEach(ticket -> result.append("ID: ").append(ticket.getId())
+                                            .append(" - ").append(ticket.getTitle())
+                                            .append(" - Status: ").append(ticket.getStatus())
+                                            .append("\n"));
+            
+            return result.toString();
+
+        } catch (Exception e) {
+            return "Error completing tickets: " + e.getMessage();
+        }
+    }
+
+    /**
      * Endpoint to delete a ticket by ID
-     * Uses @DeleteMapping for RESTful style - DELETE removes data
-     * Deletes from database using JPA Repository
+     * Uses @CacheEvict to clear cache when a ticket is deleted
      */
     @DeleteMapping("/deleteTicket")
+    @CacheEvict(value = "tickets", allEntries = true)
     public String deleteTicket(@RequestParam Integer id) {
         try {
             if (ticketRepository.existsById(id)) {
@@ -122,5 +162,15 @@ public class TicketController {
         } catch (Exception e) {
             return "Error deleting ticket: " + e.getMessage();
         }
+    }
+
+    /**
+     * Endpoint to manually refresh/clear all caches
+     * Useful for forcing fresh data retrieval from database
+     */
+    @PostMapping("/refreshCache")
+    @CacheEvict(value = "tickets", allEntries = true)
+    public String refreshCache() {
+        return "Cache has been successfully refreshed. All cached ticket data has been cleared.";
     }
 }
